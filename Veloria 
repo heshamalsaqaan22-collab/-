@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام ڤــيــلــوريــا V.L.R</title>
+    <style>
+        body { background-color: #0a0a0a; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
+        .container { max-width: 500px; margin: auto; }
+        .box { background: #161616; padding: 20px; border-radius: 15px; border: 2px solid #9d00ff; margin-bottom: 20px; box-shadow: 0 0 10px #9d00ff; }
+        input { width: 80%; padding: 12px; border-radius: 8px; border: 1px solid #9d00ff; background: #000; color: white; text-align: center; margin-bottom: 10px; font-size: 16px; }
+        .add-btn { background: #9d00ff; color: white; padding: 12px 30px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; width: 85%; }
+        .add-btn:active { transform: scale(0.95); }
+        
+        .member-card { background: #1a1a1a; padding: 15px; margin: 15px 0; border-radius: 12px; border-right: 5px solid #00d4ff; position: relative; text-align: right; }
+        .name { color: #fff; font-size: 1.3rem; font-weight: bold; display: block; }
+        .rank { color: #00d4ff; display: block; margin: 5px 0; font-size: 1rem; }
+        .exp { color: #ffcc00; font-weight: bold; font-size: 0.9rem; border: 1px solid #ffcc00; padding: 2px 5px; border-radius: 4px; display: inline-block; }
+
+        .controls { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
+        .btn-c { padding: 10px; border-radius: 6px; color: white; border: none; cursor: pointer; min-width: 55px; font-weight: bold; }
+        .p100 { background: #1b5e20; } .p10 { background: #2e7d32; }
+        .m10 { background: #c62828; } .m100 { background: #b71c1c; }
+        
+        .btn-del { position: absolute; top: 10px; left: 10px; color: #ff4d4d; background: none; border: 1px solid #ff4d4d; cursor: pointer; border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🌑 مـمـلـکـة ڤــيــلــوريــا 🌑</h1>
+        <div class="box">
+            <input type="text" id="pName" placeholder="اكتب اسم العضو الجديد...">
+            <button class="add-btn" id="addBtn">إضافة العضو للمملكة</button>
+        </div>
+        <div id="list"></div>
+    </div>
+
+    <script>
+        // تغيير اسم المفتاح لضمان بداية جديدة تماماً
+        let key = 'VLR_DATABASE_V4';
+        let data = JSON.parse(localStorage.getItem(key)) || [];
+
+        function getRankName(xp) {
+            if (xp >= 150000) return "🔱 الأمـبــراطـور";
+            if (xp >= 120000) return "⚜️ نواب الأمـبـراطـور";
+            if (xp >= 100000) return "🔆 الــلــورد";
+            if (xp >= 85000)  return "🔅 نواب اللــورد";
+            if (xp >= 70000)  return "🌟 الـمــاركـــيــز";
+            if (xp >= 60000)  return "⭐ نواب الـمـاركـيـز";
+            if (xp >= 50000)  return "🪉 الـجـيـࢪوسـي";
+            if (xp >= 40000)  return "💠 نواب الـجـيـࢪوسـي";
+            if (xp >= 30000)  return "👑 الـمـلـک";
+            if (xp >= 25000)  return "🎗️ نواب الـمـلـک";
+            if (xp >= 20000)  return "💎 الـوزࢪاء";
+            if (xp >= 15000)  return "⛅ الـامـيـر";
+            if (xp >= 12000)  return "🌤️ نواب الـامـيـر";
+            if (xp >= 10000)  return "⚜️ الادمـيـࢪال";
+            if (xp >= 8000)   return "⚕️ نواب الادمـيـࢪال";
+            if (xp >= 6000)   return "🎐 يـونـكـو";
+            if (xp >= 4500)   return "❄️ تـشـيـبـوكـاي";
+            if (xp >= 3000)   return "♟️ هـاشـيـࢪا";
+            if (xp >= 2000)   return "☘️ مـلازم";
+            if (xp >= 1000)   return "☁️ كـايـجـو";
+            if (xp >= 100)    return "🌀 مـشـࢪف تـدࢪيـبـي";
+            return "🌱 مستجد";
+        }
+
+        function render() {
+            const listDiv = document.getElementById('list');
+            listDiv.innerHTML = "";
+            
+            // ترتيب الأعضاء من الأقوى للأضعف
+            data.sort((a, b) => b.xp - a.xp);
+
+            data.forEach((m, i) => {
+                const card = document.createElement('div');
+                card.className = 'member-card';
+                card.innerHTML = `
+                    <button class="btn-del" onclick="remove(${i})">حذف</button>
+                    <span class="name">${m.name}</span>
+                    <span class="rank">${getRankName(m.xp)}</span>
+                    <span class="exp">القوة: ${m.xp}</span>
+                    <div class="controls">
+                        <button class="btn-c p100" onclick="changeXP(${i}, 100)">+100</button>
+                        <button class="btn-c p10" onclick="changeXP(${i}, 10)">+10</button>
+                        <button class="btn-c m10" onclick="changeXP(${i}, -10)">-10</button>
+                        <button class="btn-c m100" onclick="changeXP(${i}, -100)">-100</button>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        document.getElementById('addBtn').addEventListener('click', function() {
+            const input = document.getElementById('pName');
+            const name = input.value.trim();
+            if (name !== "") {
+                data.push({ name: name, xp: 0 });
+                input.value = "";
+                render();
+            } else {
+                alert("اكتب اسم المحارب أولاً!");
+            }
+        });
+
+        window.changeXP = function(i, amt) {
+            data[i].xp += amt;
+            if (data[i].xp < 0) data[i].xp = 0;
+            render();
+        }
+
+        window.remove = function(i) {
+            if(confirm("هل تريد طرد هذا العضو؟")) {
+                data.splice(i, 1);
+                render();
+            }
+        }
+
+        render(); // تشغيل أولي
+    </script>
+</body>
+</html>
